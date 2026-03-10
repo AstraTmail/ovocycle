@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
 
-# Crée le dossier data si volume monté
 mkdir -p /data 2>/dev/null || true
+
+echo "==> Install deps..."
+pip install -r requirements.txt --quiet
 
 echo "==> Migrations..."
 python manage.py migrate --noinput
