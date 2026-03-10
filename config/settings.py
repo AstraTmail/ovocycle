@@ -101,3 +101,10 @@ MESSAGE_TAGS = {
 LOGIN_URL           = '/connexion/'
 LOGIN_REDIRECT_URL  = '/'
 LOGOUT_REDIRECT_URL = '/connexion/'
+
+CSRF_TRUSTED_ORIGINS_ENV = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = (
+    CSRF_TRUSTED_ORIGINS_ENV.split(',')
+    if CSRF_TRUSTED_ORIGINS_ENV
+    else ['https://ovocycle-production.up.railway.app']
+)
