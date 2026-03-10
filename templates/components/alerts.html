@@ -1,0 +1,13 @@
+{% for alert in alerts %}
+<div class="px-4 md:px-7 py-2.5 flex items-center gap-2 md:gap-3 text-sm font-medium
+  {% if alert.priority == 'critical' %}bg-red-50 border-b border-red-200 text-red-800
+  {% else %}bg-amber-50 border-b border-amber-200 text-amber-800{% endif %}">
+  {% if alert.priority == 'critical' %}🔴{% else %}🟡{% endif %}
+  <span class="flex-1 truncate">{{ alert.label }}</span>
+  <span class="text-xs opacity-70 hidden sm:inline">—</span>
+  <a href="{% url 'incubation:batch-detail' alert.batch.pk %}"
+     class="font-semibold underline underline-offset-2 hover:no-underline shrink-0">
+    {{ alert.batch.name }}
+  </a>
+</div>
+{% endfor %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Terminer le cycle — OvoCycle{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+
+  <div class="mb-5">
+    <a href="{% url 'incubation:batch-detail' batch.pk %}" class="text-sm text-[#A09A92] hover:text-[#C4622D]">← Retour au lot</a>
+    <h1 class="font-display text-xl md:text-2xl font-bold tracking-tight mt-2">Terminer le cycle</h1>
+    <p class="text-sm text-[#6B6560] mt-1">{{ batch.name }}</p>
+  </div>
+
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800">
+    <p class="font-semibold mb-1">📋 Informations du lot</p>
+    <p>{{ batch.total_eggs }} œufs — entrés le {{ batch.entry_date|date:"d/m/Y" }}</p>
+    <p>Éclosion estimée : {{ batch.estimated_hatch_date|date:"d/m/Y" }}</p>
+  </div>
+
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5 md:p-7">
+    <form method="post">
+      {% csrf_token %}
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Œufs éclos</label>
+            {{ form.hatched_count }}
+          </div>
+          <div>
+            <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Œufs échoués</label>
+            {{ form.failed_count }}
+          </div>
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Date réelle d'éclosion</label>
+          {{ form.actual_hatch_date }}
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Notes de fin de cycle</label>
+          {{ form.notes }}
+        </div>
+        <div class="pt-4 border-t border-[#F0EDE6] flex flex-col sm:flex-row gap-3">
+          <button type="submit" class="btn bg-[#2D7A4F] text-white border-none hover:bg-green-700 flex-1">
+            🐣 Enregistrer et terminer
+          </button>
+          <a href="{% url 'incubation:batch-detail' batch.pk %}" class="btn btn-ghost">Annuler</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

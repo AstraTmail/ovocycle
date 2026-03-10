@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Observer l'œuf {{ egg.identifier }} — OvoCycle{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+
+  <div class="mb-5">
+    <a href="{% url 'incubation:batch-detail' batch.pk %}" class="text-sm text-[#A09A92] hover:text-[#C4622D]">
+      ← Retour au lot {{ batch.name }}
+    </a>
+    <h1 class="font-display text-xl md:text-2xl font-bold tracking-tight mt-2">Observer l'œuf {{ egg.identifier }}</h1>
+    <p class="text-sm text-[#6B6560]">
+      {{ egg.position_display }} — <span class="font-mono text-xs">{{ egg.get_status_display }}</span>
+    </p>
+  </div>
+
+  {% if history %}
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm mb-5 overflow-hidden">
+    <div class="px-4 md:px-5 py-3 border-b border-[#F0EDE6]">
+      <h2 class="font-display font-bold text-sm">Historique des observations</h2>
+    </div>
+    <div class="divide-y divide-[#F7F5F0]">
+      {% for obs in history %}
+      <div class="flex flex-wrap items-center gap-2 md:gap-3 px-4 md:px-5 py-3">
+        <span class="font-mono text-[9px] text-[#A09A92] shrink-0">{{ obs.observed_at|date:"d/m/Y H:i" }}</span>
+        <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-[#F0EDE6] text-[#6B6560] shrink-0">{{ obs.get_candling_number_display }}</span>
+        <span class="text-sm font-medium text-[#1A1814]">{{ obs.get_result_display }}</span>
+        {% if obs.notes %}<span class="text-xs text-[#A09A92] truncate">{{ obs.notes|truncatechars:40 }}</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5 md:p-7">
+    <h2 class="font-display font-bold text-sm mb-5">Nouvelle observation</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="space-y-4">
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Type de mirage</label>
+          {{ form.candling_number }}
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Résultat *</label>
+          {{ form.result }}
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Observations détaillées</label>
+          {{ form.notes }}
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1">Observé par</label>
+          {{ form.observed_by }}
+        </div>
+        <div class="pt-4 border-t border-[#F0EDE6] flex flex-col sm:flex-row gap-3">
+          <button type="submit" class="btn bg-[#C4622D] text-white border-none hover:bg-[#b0562a] flex-1">
+            Enregistrer l'observation
+          </button>
+          <a href="{% url 'incubation:batch-detail' batch.pk %}" class="btn btn-ghost">Annuler</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

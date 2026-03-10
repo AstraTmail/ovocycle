@@ -1,0 +1,64 @@
+{% load ovo_tags %}
+<tr class="hover:bg-[#FAF9F7] transition-colors" id="egg-row-{{ egg.pk }}">
+
+  <!-- N° inscrit sur l'œuf -->
+  <td class="px-5 py-3">
+    <span class="font-mono font-bold text-sm bg-[#1A1814] text-white px-2.5 py-1.5 rounded-lg tracking-widest">
+      {{ egg.identifier }}
+    </span>
+  </td>
+
+  <!-- Position E2A3 -->
+  <td class="px-4 py-3">
+    <span class="font-mono font-bold text-sm text-[#C4622D] bg-[#F5EAE4] px-2.5 py-1.5 rounded-lg">
+      {{ egg.position_code }}
+    </span>
+    <p class="font-mono text-[9px] text-[#C0BAB3] mt-1">{{ egg.position_display }}</p>
+  </td>
+
+  <!-- Statut modifiable HTMX -->
+  <td class="px-4 py-3">
+    <form hx-post="{% url 'incubation:egg-status' egg.pk %}"
+          hx-target="#egg-row-{{ egg.pk }}"
+          hx-swap="outerHTML">
+      {% csrf_token %}
+      <select name="status" onchange="this.form.requestSubmit()"
+              class="select select-xs border border-[#E5E0D8] text-xs rounded-lg bg-transparent">
+        <option value="pending"     {% if egg.status == 'pending' %}selected{% endif %}>En attente</option>
+        <option value="fertile"     {% if egg.status == 'fertile' %}selected{% endif %}>Fertile</option>
+        <option value="clear"       {% if egg.status == 'clear' %}selected{% endif %}>Clair (infertile)</option>
+        <option value="dead_embryo" {% if egg.status == 'dead_embryo' %}selected{% endif %}>Mort embryonnaire</option>
+        <option value="cracked"     {% if egg.status == 'cracked' %}selected{% endif %}>Fissuré</option>
+        <option value="hatched"     {% if egg.status == 'hatched' %}selected{% endif %}>Éclos ✓</option>
+        <option value="failed"      {% if egg.status == 'failed' %}selected{% endif %}>Échoué</option>
+        <option value="removed"     {% if egg.status == 'removed' %}selected{% endif %}>Retiré</option>
+      </select>
+    </form>
+  </td>
+
+  <!-- Dernier mirage -->
+  <td class="px-4 py-3 text-xs text-[#6B6560]">
+    {% with obs=egg.latest_observation %}
+      {% if obs %}
+        <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#F0EDE6]">{{ obs.get_result_display }}</span>
+        <span class="text-[#C0BAB3] ml-1">{{ obs.observed_at|date:"d/m" }}</span>
+      {% else %}<span class="text-[#D5CEC5]">—</span>{% endif %}
+    {% endwith %}
+  </td>
+
+  <!-- Notes -->
+  <td class="px-4 py-3 text-xs text-[#A09A92] max-w-[150px] truncate">{{ egg.notes|truncatechars:35 }}</td>
+
+  <!-- Actions -->
+  <td class="px-5 py-3 text-right">
+    <a href="{% url 'incubation:egg-update' egg.pk %}"
+       class="btn btn-xs btn-ghost text-[#6B6560] hover:bg-[#F0EDE6]">
+      ✏️
+    </a>
+    <a href="{% url 'incubation:observation-create' egg.pk %}"
+       class="btn btn-xs btn-ghost text-[#C4622D] hover:bg-[#F5EAE4]">
+      + Observer
+    </a>
+  </td>
+
+</tr>

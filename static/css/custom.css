@@ -1,0 +1,73 @@
+/* OvoCycle — styles personnalisés */
+
+/* Fonts globales */
+.font-display { font-family: 'Syne', sans-serif; }
+.font-mono    { font-family: 'DM Mono', monospace; }
+
+/* Variables */
+:root {
+  --ovo-accent:      #C4622D;
+  --ovo-accent-soft: #F5EAE4;
+  --ovo-bg:          #F7F5F0;
+  --ovo-border:      #E5E0D8;
+  --ovo-surface:     #FFFFFF;
+  --ovo-text:        #1A1814;
+  --ovo-text-muted:  #A09A92;
+}
+
+/* Reset inputs DaisyUI pour cohérence */
+.input, .select, .textarea {
+  background: var(--ovo-surface);
+  border-color: var(--ovo-border);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+.input:focus, .select:focus, .textarea:focus {
+  outline: 2px solid var(--ovo-accent);
+  outline-offset: 0;
+  border-color: var(--ovo-accent);
+}
+
+/* Sidebar active state */
+.sidebar-active {
+  background: var(--ovo-accent) !important;
+  color: white !important;
+}
+
+/* Timeline line utility */
+.tl-line-done   { background: #2D7A4F; }
+.tl-line-active { background: var(--ovo-accent); }
+.tl-line-future { background: var(--ovo-border); }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.fade-in { animation: fadeIn .25s ease; }
+
+/* HTMX loading state */
+.htmx-indicator { opacity: 0; transition: opacity .2s; }
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator { opacity: 1; }
+
+/* Heatmap egg cells */
+.egg-cell {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  border: 1.5px solid transparent;
+}
+.egg-cell:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}

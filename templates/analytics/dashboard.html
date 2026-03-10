@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% load ovo_tags %}
+
+{% block title %}Analytique — OvoCycle{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-0">
+
+  <div class="flex items-center justify-between mb-7">
+    <div>
+      <h1 class="font-display text-2xl font-bold tracking-tight">Performances & Analytique</h1>
+      <p class="font-mono text-[11px] text-[#A09A92] uppercase tracking-widest mt-0.5">
+        {{ total_batches }} cycle{{ total_batches|pluralize }} analysés · {{ total_eggs_all }} œufs enregistrés
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══ KPI GLOBAUX ═══ -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5 md:mb-7">
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-5 shadow-sm">
+      <p class="font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-2">Cycles analysés</p>
+      <p class="font-display text-4xl font-bold text-[#C4622D]">{{ total_batches }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-5 shadow-sm">
+      <p class="font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-2">Taux d'éclosion moy.</p>
+      <p class="font-display text-4xl font-bold text-[#2D7A4F]">
+        {% if avg_hatch_rate %}{{ avg_hatch_rate }}<span class="text-xl">%</span>{% else %}—{% endif %}
+      </p>
+    </div>
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-5 shadow-sm">
+      <p class="font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-2">Total œufs incubés</p>
+      <p class="font-display text-4xl font-bold text-[#C49B2D]">{{ total_eggs }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-5 shadow-sm">
+      <p class="font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-2">Total œufs éclos</p>
+      <p class="font-display text-4xl font-bold text-[#2D4FC4]">{{ total_hatched }}</p>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION EMPLACEMENTS ═══ -->
+  <div class="mb-2">
+    <h2 class="font-display text-lg font-bold tracking-tight">📍 Analyse par emplacement</h2>
+    <p class="text-sm text-[#A09A92] mt-0.5">Performances de chaque zone de la couveuse sur tous les cycles</p>
+  </div>
+
+  <!-- Stats par étage / colonne / ligne -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5 mt-4">
+
+    <!-- Par étage -->
+    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
+        <h3 class="font-display font-bold text-sm">Par étage</h3>
+      </div>
+      <div class="divide-y divide-[#F7F5F0]">
+        {% for s in floor_stats %}
+        <div class="px-5 py-3 flex items-center gap-3">
+          <div class="w-9 h-9 bg-[#1A1814] text-white rounded-xl flex items-center justify-center font-display font-bold flex-shrink-0">
+            {{ s.floor }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-mono text-xs font-bold">{{ s.label }}</span>
+              <span class="font-display font-bold text-sm
+                {% if s.hatch_rate >= 75 %}text-green-600
+                {% elif s.hatch_rate >= 50 %}text-amber-600
+                {% elif s.total == 0 %}text-[#C0BAB3]
+                {% else %}text-red-500{% endif %}">
+                {% if s.total > 0 %}{{ s.hatch_rate }}%{% else %}—{% endif %}
+              </span>
+            </div>
+            <!-- Barre de progression -->
+            <div class="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all
+                {% if s.hatch_rate >= 75 %}bg-green-500
+                {% elif s.hatch_rate >= 50 %}bg-amber-500
+                {% else %}bg-red-400{% endif %}"
+                style="width: {{ s.hatch_rate }}%"></div>
+            </div>
+            <p class="font-mono text-[9px] text-[#C0BAB3] mt-1">{{ s.hatched }}/{{ s.total }} œufs · mort. {{ s.mort_rate }}%</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="px-5 py-4 text-sm text-[#A09A92]">Aucune donnée</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Par colonne -->
+    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
+        <h3 class="font-display font-bold text-sm">Par colonne (A→E)</h3>
+      </div>
+      <div class="divide-y divide-[#F7F5F0]">
+        {% for s in col_stats %}
+        <div class="px-5 py-3 flex items-center gap-3">
+          <div class="w-9 h-9 bg-[#C4622D] text-white rounded-xl flex items-center justify-center font-display font-bold flex-shrink-0">
+            {{ s.col }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-mono text-xs font-bold">{{ s.label }}</span>
+              <span class="font-display font-bold text-sm
+                {% if s.hatch_rate >= 75 %}text-green-600
+                {% elif s.hatch_rate >= 50 %}text-amber-600
+                {% elif s.total == 0 %}text-[#C0BAB3]
+                {% else %}text-red-500{% endif %}">
+                {% if s.total > 0 %}{{ s.hatch_rate }}%{% else %}—{% endif %}
+              </span>
+            </div>
+            <div class="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
+              <div class="h-full rounded-full
+                {% if s.hatch_rate >= 75 %}bg-green-500
+                {% elif s.hatch_rate >= 50 %}bg-amber-500
+                {% else %}bg-red-400{% endif %}"
+                style="width: {{ s.hatch_rate }}%"></div>
+            </div>
+            <p class="font-mono text-[9px] text-[#C0BAB3] mt-1">{{ s.hatched }}/{{ s.total }} œufs · fert. {{ s.fertility_rate }}%</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="px-5 py-4 text-sm text-[#A09A92]">Aucune donnée</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Par ligne -->
+    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
+        <h3 class="font-display font-bold text-sm">Par ligne (1→6)</h3>
+      </div>
+      <div class="divide-y divide-[#F7F5F0]">
+        {% for s in row_stats %}
+        <div class="px-5 py-3 flex items-center gap-3">
+          <div class="w-9 h-9 bg-[#2D7A4F] text-white rounded-xl flex items-center justify-center font-display font-bold flex-shrink-0">
+            {{ s.row }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-mono text-xs font-bold">{{ s.label }}</span>
+              <span class="font-display font-bold text-sm
+                {% if s.hatch_rate >= 75 %}text-green-600
+                {% elif s.hatch_rate >= 50 %}text-amber-600
+                {% elif s.total == 0 %}text-[#C0BAB3]
+                {% else %}text-red-500{% endif %}">
+                {% if s.total > 0 %}{{ s.hatch_rate }}%{% else %}—{% endif %}
+              </span>
+            </div>
+            <div class="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
+              <div class="h-full rounded-full
+                {% if s.hatch_rate >= 75 %}bg-green-500
+                {% elif s.hatch_rate >= 50 %}bg-amber-500
+                {% else %}bg-red-400{% endif %}"
+                style="width: {{ s.hatch_rate }}%"></div>
+            </div>
+            <p class="font-mono text-[9px] text-[#C0BAB3] mt-1">{{ s.hatched }}/{{ s.total }} œufs · mort. {{ s.mort_rate }}%</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="px-5 py-4 text-sm text-[#A09A92]">Aucune donnée</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Meilleurs / Pires emplacements précis -->
+  {% if best_slots or worst_slots %}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+
+    <!-- Top 5 emplacements -->
+    <div class="bg-green-50 border border-green-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 border-b border-green-200">
+        <h3 class="font-display font-bold text-sm text-green-800">🏆 Top emplacements</h3>
+        <p class="font-mono text-[9px] text-green-600">Meilleurs taux d'éclosion</p>
+      </div>
+      <div class="divide-y divide-green-100">
+        {% for s in best_slots %}
+        <div class="px-5 py-2.5 flex items-center justify-between">
+          <span class="font-mono font-bold text-sm text-green-800 bg-green-100 px-2 py-0.5 rounded-lg">{{ s.code }}</span>
+          <div class="text-right">
+            <span class="font-display font-bold text-base text-green-700">{{ s.hatch_rate }}%</span>
+            <p class="font-mono text-[9px] text-green-500">{{ s.hatched }}/{{ s.total }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="px-5 py-4 text-sm text-green-600">Pas assez de données (min. 3 passages)</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Emplacements fiables (faible mortalité) -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 border-b border-blue-200">
+        <h3 class="font-display font-bold text-sm text-blue-800">🛡 Emplacements fiables</h3>
+        <p class="font-mono text-[9px] text-blue-600">Faible mortalité embryonnaire</p>
+      </div>
+      <div class="divide-y divide-blue-100">
+        {% for s in reliable_slots %}
+        <div class="px-5 py-2.5 flex items-center justify-between">
+          <span class="font-mono font-bold text-sm text-blue-800 bg-blue-100 px-2 py-0.5 rounded-lg">{{ s.code }}</span>
+          <div class="text-right">
+            <span class="font-display font-bold text-base text-blue-700">{{ s.mort_rate }}%</span>
+            <p class="font-mono text-[9px] text-blue-500">mort. embryo.</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="px-5 py-4 text-sm text-blue-600">Pas assez de données</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Pires emplacements -->
+    <div class="bg-red-50 border border-red-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 border-b border-red-200">
+        <h3 class="font-display font-bold text-sm text-red-800">⚠️ Emplacements à surveiller</h3>
+        <p class="font-mono text-[9px] text-red-500">Taux d'éclosion les plus faibles</p>
+      </div>
+      <div class="divide-y divide-red-100">
+        {% for s in worst_slots %}
+        <div class="px-5 py-2.5 flex items-center justify-between">
+          <span class="font-mono font-bold text-sm text-red-700 bg-red-100 px-2 py-0.5 rounded-lg">{{ s.code }}</span>
+          <div class="text-right">
+            <span class="font-display font-bold text-base text-red-600">{{ s.hatch_rate }}%</span>
+            <p class="font-mono text-[9px] text-red-400">{{ s.hatched }}/{{ s.total }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="px-5 py-4 text-sm text-red-500">Pas assez de données (min. 3 passages)</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+
+  <!-- Heatmap visuelle par étage -->
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5 mb-7">
+    <h3 class="font-display font-bold text-sm mb-1">Heatmap d'éclosion par emplacement</h3>
+    <p class="text-xs text-[#A09A92] mb-4">Taux d'éclosion historique de chaque emplacement (vert = excellent, rouge = à améliorer, gris = pas de données)</p>
+    <div class="space-y-5" id="heatmap-container"></div>
+  </div>
+
+  <!-- ═══ BEST / WORST BATCH ═══ -->
+  {% if best_batch %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-7">
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+      <p class="font-mono text-[10px] text-green-600 uppercase tracking-widest mb-1">🏆 Meilleur cycle</p>
+      <p class="font-display font-bold text-base text-green-800">{{ best_batch.name }}</p>
+      <p class="font-display text-3xl font-bold text-green-700">{{ best_batch.hatch_rate }}<span class="text-base">%</span></p>
+      <p class="font-mono text-[10px] text-green-600 mt-1">{{ best_batch.entry_date|date:"M Y" }}</p>
+    </div>
+    {% if worst_batch and worst_batch != best_batch %}
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+      <p class="font-mono text-[10px] text-red-500 uppercase tracking-widest mb-1">📉 Cycle à analyser</p>
+      <p class="font-display font-bold text-base text-red-700">{{ worst_batch.name }}</p>
+      <p class="font-display text-3xl font-bold text-red-600">{{ worst_batch.hatch_rate }}<span class="text-base">%</span></p>
+      <p class="font-mono text-[10px] text-red-400 mt-1">{{ worst_batch.entry_date|date:"M Y" }}</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ═══ GRAPHIQUES ═══ -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-7">
+    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5">
+      <h2 class="font-display font-bold text-sm mb-4">Évolution du taux d'éclosion</h2>
+      <canvas id="hatchLineChart" height="200"></canvas>
+    </div>
+    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5">
+      <h2 class="font-display font-bold text-sm mb-4">Analyse des causes d'échec</h2>
+      <canvas id="failureChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══ PAR ESPÈCE ═══ -->
+  {% if species_data %}
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden mb-7">
+    <div class="px-5 py-4 border-b border-[#F0EDE6]">
+      <h2 class="font-display font-bold text-sm">Performances par espèce</h2>
+    </div>
+    <table class="w-full">
+      <thead>
+        <tr class="bg-[#F7F5F0] border-b border-[#F0EDE6]">
+          <th class="text-left px-5 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Espèce</th>
+          <th class="text-center px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Cycles</th>
+          <th class="text-center px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Œufs</th>
+          <th class="text-center px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Éclos</th>
+          <th class="text-center px-5 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Taux moy.</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[#F7F5F0]">
+        {% for species, data in species_data.items %}
+        <tr class="hover:bg-[#FAF9F7]">
+          <td class="px-5 py-3 font-display font-bold text-sm">{{ species }}</td>
+          <td class="px-4 py-3 text-center font-mono text-sm">{{ data.count }}</td>
+          <td class="px-4 py-3 text-center font-mono text-sm">{{ data.total_eggs }}</td>
+          <td class="px-4 py-3 text-center font-mono text-sm">{{ data.total_hatched }}</td>
+          <td class="px-5 py-3 text-center">
+            <span class="font-display font-bold text-sm
+              {% if data.avg_rate >= 75 %}text-green-600
+              {% elif data.avg_rate >= 50 %}text-amber-600
+              {% else %}text-red-500{% endif %}">
+              {{ data.avg_rate }}%
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- ═══ HISTORIQUE ═══ -->
+  {% if completed_batches %}
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-[#F0EDE6]">
+      <h2 class="font-display font-bold text-sm">Historique complet des cycles</h2>
+    </div>
+    <table class="w-full">
+      <thead>
+        <tr class="bg-[#F7F5F0] border-b border-[#F0EDE6]">
+          <th class="text-left px-5 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Lot</th>
+          <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Date</th>
+          <th class="text-center px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Œufs</th>
+          <th class="text-center px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Éclos</th>
+          <th class="text-center px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Fertilité</th>
+          <th class="text-center px-5 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Taux éclosion</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[#F7F5F0]">
+        {% for batch in completed_batches %}
+        <tr class="hover:bg-[#FAF9F7]">
+          <td class="px-5 py-3">
+            <a href="{% url 'incubation:batch-detail' batch.pk %}"
+               class="font-display font-bold text-sm hover:text-[#C4622D] transition-colors">
+              {{ batch.name }}
+            </a>
+          </td>
+          <td class="px-4 py-3 font-mono text-xs text-[#6B6560]">{{ batch.entry_date|date:"M Y" }}</td>
+          <td class="px-4 py-3 text-center font-mono text-sm">{{ batch.total_eggs }}</td>
+          <td class="px-4 py-3 text-center font-mono text-sm">{{ batch.hatched_count|default:"—" }}</td>
+          <td class="px-4 py-3 text-center font-mono text-sm text-[#6B6560]">
+            {{ batch.fertility_rate|default:"—" }}{% if batch.fertility_rate %}%{% endif %}
+          </td>
+          <td class="px-5 py-3 text-center">
+            {% if batch.hatch_rate %}
+            <span class="font-display font-bold text-sm
+              {% if batch.hatch_rate >= 75 %}text-green-600
+              {% elif batch.hatch_rate >= 50 %}text-amber-600
+              {% else %}text-red-500{% endif %}">
+              {{ batch.hatch_rate }}%
+            </span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Heatmap visuelle ──────────────────────────────────────────────────────────
+const heatmapData = {{ heatmap_json|safe }};
+const colLabels   = ['A','B','C','D','E'];
+const container   = document.getElementById('heatmap-container');
+
+function hatchColor(rate, total) {
+  if (total === 0) return { bg: '#F3F4F6', text: '#D1D5DB', border: '#E5E7EB' };
+  if (rate >= 80)  return { bg: '#D1FAE5', text: '#065F46', border: '#6EE7B7' };
+  if (rate >= 60)  return { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' };
+  if (rate >= 40)  return { bg: '#FEF3C7', text: '#92400E', border: '#FCD34D' };
+  if (rate >= 20)  return { bg: '#FEE2E2', text: '#991B1B', border: '#FCA5A5' };
+  return           { bg: '#FEE2E2', text: '#7F1D1D', border: '#F87171' };
+}
+
+[1, 2, 3].forEach(floor => {
+  const cells = heatmapData[floor] || [];
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <div class="flex items-start gap-4">
+      <div class="w-10 h-10 bg-[#1A1814] text-white rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0 mt-6">${floor}</div>
+      <div class="flex-1">
+        <div class="flex gap-1 mb-1">
+          ${colLabels.map(c => `<div class="flex-1 text-center font-display font-bold text-sm text-[#1A1814]">${c}</div>`).join('')}
+        </div>
+        <div class="space-y-1" id="floor-${floor}-rows"></div>
+      </div>
+    </div>`;
+  container.appendChild(wrapper);
+
+  const rowsContainer = wrapper.querySelector(`#floor-${floor}-rows`);
+  for (let row = 0; row < 6; row++) {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'flex gap-1 items-center';
+    rowDiv.innerHTML = `<span class="w-4 font-mono text-[10px] text-[#A09A92] text-right flex-shrink-0">${row+1}</span>`;
+    for (let col = 0; col < 5; col++) {
+      const cell = cells.find(c => c.x === col && c.y === row);
+      const rate  = cell ? cell.v : 0;
+      const total = cell ? cell.total : 0;
+      const code  = cell ? cell.code : '';
+      const clr   = hatchColor(rate, total);
+      const cellDiv = document.createElement('div');
+      cellDiv.className = 'flex-1 rounded-lg border-2 flex flex-col items-center justify-center cursor-default transition-transform hover:scale-105';
+      cellDiv.style.cssText = `background:${clr.bg}; border-color:${clr.border}; min-height:38px;`;
+      cellDiv.title = total > 0 ? `${code} — ${rate}% (${cell.total} passages)` : `${code} — Aucune donnée`;
+      cellDiv.innerHTML = `
+        <span style="font-family:'DM Mono',monospace; font-size:8px; color:${clr.text}; font-weight:700; line-height:1">${code.slice(-2)}</span>
+        <span style="font-family:'Syne',sans-serif; font-size:11px; color:${clr.text}; font-weight:800; line-height:1.2; margin-top:1px">
+          ${total > 0 ? rate+'%' : '·'}
+        </span>`;
+      rowDiv.appendChild(cellDiv);
+    }
+    rowsContainer.appendChild(rowDiv);
+  }
+});
+
+// ── Graphique évolution ───────────────────────────────────────────────────────
+const hatchData = {{ hatch_chart|safe }};
+if (hatchData.length > 0) {
+  new Chart(document.getElementById('hatchLineChart'), {
+    type: 'bar',
+    data: {
+      labels: hatchData.map(d => d.name),
+      datasets: [{
+        label: "Taux d'éclosion (%)",
+        data: hatchData.map(d => d.hatch_rate),
+        backgroundColor: hatchData.map(d =>
+          d.hatch_rate >= 75 ? 'rgba(45,122,79,0.7)' :
+          d.hatch_rate >= 50 ? 'rgba(196,155,45,0.7)' : 'rgba(196,45,45,0.7)'
+        ),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 100, grid: { color: '#F0EDE6' },
+             ticks: { callback: v => v + '%', font: { family: 'DM Mono', size: 10 } } },
+        x: { grid: { display: false }, ticks: { font: { family: 'DM Mono', size: 9 } } }
+      }
+    }
+  });
+}
+
+// ── Graphique causes d'échec ──────────────────────────────────────────────────
+const failData = {{ failure_json|safe }};
+const total = failData.reduce((sum, d) => sum + d.value, 0);
+if (total > 0) {
+  new Chart(document.getElementById('failureChart'), {
+    type: 'doughnut',
+    data: {
+      labels: failData.map(d => d.label),
+      datasets: [{
+        data: failData.map(d => d.value),
+        backgroundColor: failData.map(d => d.color),
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'DM Mono', size: 10 }, padding: 12 } }
+      },
+      cutout: '65%',
+    }
+  });
+}
+</script>
+{% endblock %}

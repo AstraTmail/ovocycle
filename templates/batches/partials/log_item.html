@@ -1,0 +1,18 @@
+<div class="flex items-start gap-3 px-5 py-3">
+  <span class="font-mono text-[9px] text-[#A09A92] w-24 shrink-0 mt-0.5">{{ log.logged_at|date:"d/m H:i" }}</span>
+  <div class="flex-1">
+    {% if log.event %}
+    <p class="text-sm font-medium text-[#1A1814]">{{ log.event }}</p>
+    {% endif %}
+    {% if log.temperature or log.humidity %}
+    <p class="font-mono text-[10px] text-[#A09A92] mt-0.5">
+      {% if log.temperature %}🌡 {{ log.temperature }}°C{% endif %}
+      {% if log.humidity %}· 💧 {{ log.humidity }}%{% endif %}
+      {% if log.co2_ppm %}· CO2: {{ log.co2_ppm }}ppm{% endif %}
+    </p>
+    {% endif %}
+    {% if log.notes %}
+    <p class="text-xs text-[#6B6560] mt-0.5">{{ log.notes }}</p>
+    {% endif %}
+  </div>
+</div>

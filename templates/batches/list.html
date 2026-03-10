@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load ovo_tags %}
+
+{% block title %}Lots d'incubation — OvoCycle{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="font-display text-xl md:text-2xl font-bold tracking-tight">Lots d'incubation</h1>
+      <p class="font-mono text-[11px] text-[#A09A92] uppercase tracking-widest mt-0.5">{{ batches.count }} lot{{ batches.count|pluralize }}</p>
+    </div>
+    <a href="{% url 'incubation:batch-create' %}" class="btn btn-sm bg-[#C4622D] text-white border-none hover:bg-[#b0562a]">
+      <span class="hidden sm:inline">＋ Nouveau lot</span>
+      <span class="sm:hidden">＋</span>
+    </a>
+  </div>
+
+  <!-- Filtres -->
+  <div class="flex gap-2 mb-5 flex-wrap">
+    <a href="{% url 'incubation:batch-list' %}"
+       class="btn btn-xs {% if not current_status %}bg-[#1A1814] text-white border-none{% else %}btn-ghost{% endif %}">Tous</a>
+    {% for val, label in status_choices %}
+    <a href="?status={{ val }}"
+       class="btn btn-xs {% if current_status == val %}bg-[#C4622D] text-white border-none{% else %}btn-ghost{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  {% if batches %}
+
+  <!-- Vue mobile : cards -->
+  <div class="flex flex-col gap-3 md:hidden">
+    {% for batch in batches %}
+    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-4" x-data="{ confirmDelete: false }">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div class="min-w-0">
+          <a href="{% url 'incubation:batch-detail' batch.pk %}"
+             class="font-display font-bold text-sm hover:text-[#C4622D] transition-colors">{{ batch.name }}</a>
+          <p class="font-mono text-[9px] text-[#C0BAB3] uppercase mt-0.5">{{ batch.entry_date|date:"d/m/Y" }}</p>
+        </div>
+        <span class="shrink-0 text-[10px] font-mono px-2 py-0.5 rounded-full {{ batch.status|batch_status_color }}">
+          {{ batch.get_status_display }}
+        </span>
+      </div>
+      <div class="flex gap-3 text-xs text-[#6B6560] mb-3">
+        <span>🐣 {{ batch.get_species_display }}</span>
+        <span>🥚 {{ batch.total_eggs }} œufs</span>
+        <span>📅 J{{ batch.incubation_day }}</span>
+        {% if batch.hatch_rate %}<span class="text-green-600 font-semibold">{{ batch.hatch_rate }}%</span>{% endif %}
+      </div>
+      <!-- Barre progression -->
+      <div class="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden mb-3">
+        <div class="h-full bg-gradient-to-r from-[#C4622D] to-[#E08040] rounded-full" style="width:{{ batch.progress_percent }}%"></div>
+      </div>
+      <div class="flex gap-2">
+        <a href="{% url 'incubation:batch-detail' batch.pk %}" class="btn btn-xs btn-ghost text-[#C4622D] flex-1">Voir</a>
+        <a href="{% url 'incubation:batch-update' batch.pk %}" class="btn btn-xs btn-ghost flex-1">Éditer</a>
+        {% if batch.status != 'completed' %}
+        <a href="{% url 'incubation:batch-complete' batch.pk %}" class="btn btn-xs btn-ghost text-green-600 flex-1">Terminer</a>
+        {% endif %}
+        <button @click="confirmDelete = true" class="btn btn-xs btn-ghost text-red-400">🗑</button>
+      </div>
+      <!-- Modale suppression -->
+      <div x-show="confirmDelete" style="display:none"
+           class="fixed inset-0 z-[500] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+           @click.self="confirmDelete = false">
+        <div class="bg-white rounded-2xl shadow-2xl border border-[#E5E0D8] p-6 max-w-sm w-full">
+          <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-xl mb-3">🗑</div>
+          <h2 class="font-display font-bold text-base text-[#1A1814] mb-1">Supprimer ce lot ?</h2>
+          <p class="font-bold text-sm mb-1">{{ batch.name }}</p>
+          <p class="text-xs text-[#A09A92] mb-3">{{ batch.eggs.count }} œuf(s) enregistré(s)</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-4 text-xs text-red-700">
+            ⚠️ Action <strong>irréversible</strong>.
+          </div>
+          <div class="flex gap-2">
+            <form method="post" action="{% url 'incubation:batch-delete' batch.pk %}" class="flex-1">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm w-full bg-red-600 text-white border-none">Supprimer</button>
+            </form>
+            <button @click="confirmDelete = false" class="btn btn-sm btn-ghost flex-1">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Vue desktop : tableau -->
+  <div class="hidden md:block bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-[#F0EDE6] bg-[#F7F5F0]">
+          <th class="text-left px-5 py-3 font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Lot</th>
+          <th class="text-left px-4 py-3 font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Espèce</th>
+          <th class="text-center px-4 py-3 font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Œufs</th>
+          <th class="text-center px-4 py-3 font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Jour</th>
+          <th class="text-center px-4 py-3 font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Statut</th>
+          <th class="text-center px-4 py-3 font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Taux éclosion</th>
+          <th class="text-right px-5 py-3 font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[#F7F5F0]">
+        {% for batch in batches %}
+        <tr class="hover:bg-[#FAF9F7] transition-colors group" x-data="{ confirmDelete: false }">
+          <td class="px-5 py-4">
+            <a href="{% url 'incubation:batch-detail' batch.pk %}"
+               class="font-display font-bold text-sm group-hover:text-[#C4622D] transition-colors">{{ batch.name }}</a>
+            <p class="font-mono text-[9px] text-[#C0BAB3] uppercase mt-0.5">{{ batch.entry_date|date:"d/m/Y" }}{% if batch.breed %} · {{ batch.breed }}{% endif %}</p>
+          </td>
+          <td class="px-4 py-4 text-sm text-[#6B6560]">{{ batch.get_species_display }}</td>
+          <td class="px-4 py-4 text-center font-mono text-sm">{{ batch.total_eggs }}</td>
+          <td class="px-4 py-4 text-center">
+            <span class="font-mono text-sm">J{{ batch.incubation_day }}</span>
+            <div class="w-16 h-1 bg-[#F0EDE6] rounded-full overflow-hidden mx-auto mt-1">
+              <div class="h-full bg-[#C4622D] rounded-full" style="width:{{ batch.progress_percent }}%"></div>
+            </div>
+          </td>
+          <td class="px-4 py-4 text-center">
+            <span class="text-[10px] font-mono px-2 py-1 rounded-full {{ batch.status|batch_status_color }}">{{ batch.get_status_display }}</span>
+          </td>
+          <td class="px-4 py-4 text-center">
+            {% if batch.hatch_rate %}
+            <span class="font-display font-bold text-sm {% if batch.hatch_rate >= 75 %}text-green-600{% elif batch.hatch_rate >= 50 %}text-amber-600{% else %}text-red-500{% endif %}">
+              {{ batch.hatch_rate }}%
+            </span>
+            {% else %}<span class="text-[#D5CEC5]">—</span>{% endif %}
+          </td>
+          <td class="px-5 py-4">
+            <div class="flex items-center justify-end gap-1">
+              <a href="{% url 'incubation:batch-detail' batch.pk %}" class="btn btn-xs btn-ghost text-[#C4622D]">Voir</a>
+              <a href="{% url 'incubation:batch-update' batch.pk %}" class="btn btn-xs btn-ghost">Éditer</a>
+              {% if batch.status != 'completed' %}
+              <a href="{% url 'incubation:batch-complete' batch.pk %}" class="btn btn-xs btn-ghost text-green-600">Terminer</a>
+              {% endif %}
+              <button @click="confirmDelete = true" class="btn btn-xs btn-ghost text-red-400 hover:text-red-600 hover:bg-red-50">🗑</button>
+              <div x-show="confirmDelete" style="display:none"
+                   class="fixed inset-0 z-[500] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                   @click.self="confirmDelete = false">
+                <div class="bg-white rounded-2xl shadow-2xl border border-[#E5E0D8] p-7 max-w-sm w-full mx-4">
+                  <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl mb-4">🗑</div>
+                  <h2 class="font-display text-lg font-bold mb-1">Supprimer ce lot ?</h2>
+                  <p class="font-bold text-sm mb-1">{{ batch.name }}</p>
+                  <p class="text-xs text-[#A09A92] mb-4">{{ batch.total_eggs }} œufs · {{ batch.eggs.count }} enregistrements</p>
+                  <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5 text-xs text-red-700">⚠️ Action <strong>irréversible</strong>.</div>
+                  <div class="flex gap-2">
+                    <form method="post" action="{% url 'incubation:batch-delete' batch.pk %}" class="flex-1">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm w-full bg-red-600 text-white border-none">Supprimer</button>
+                    </form>
+                    <button @click="confirmDelete = false" class="btn btn-sm btn-ghost flex-1">Annuler</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm py-16 text-center">
+    <div class="text-4xl mb-3">🥚</div>
+    <p class="text-[#A09A92] text-sm mb-4">Aucun lot trouvé.</p>
+    <a href="{% url 'incubation:batch-create' %}" class="btn btn-sm bg-[#C4622D] text-white border-none hover:bg-[#b0562a]">
+      Créer un lot
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

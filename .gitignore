@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Environnement virtuel
+venv/
+.venv/
+env/
+.env/
+
+# Django
+*.sqlite3
+db.sqlite3
+staticfiles/
+media/
+local_settings.py
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Variables d'environnement
+.env
+.env.local
+.env.production

@@ -1,0 +1,164 @@
+{% load ovo_tags %}
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OvoCycle{% endblock %}</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root { --accent: #C4622D; }
+    body  { font-family: 'Inter', sans-serif; background: #F7F5F0; }
+    .font-display { font-family: 'Syne', sans-serif; }
+    .font-mono    { font-family: 'DM Mono', monospace; }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+    .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
+    .htmx-request .htmx-indicator { opacity: 1; }
+    .htmx-request.htmx-indicator  { opacity: 1; }
+    /* Overlay sidebar mobile */
+    #sidebar-overlay { display: none; }
+    #sidebar-overlay.active { display: block; }
+    #sidebar.open { transform: translateX(0); }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="min-h-screen" x-data="{ sidebarOpen: false }">
+
+  <!-- ══ OVERLAY mobile ══ -->
+  <div class="fixed inset-0 bg-black/50 z-40 lg:hidden"
+       style="display:none"
+       x-show="sidebarOpen"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @click="sidebarOpen = false">
+  </div>
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside id="sidebar"
+         class="fixed top-0 left-0 bottom-0 z-50 w-56 bg-[#1A1814] text-white flex flex-col
+                transform -translate-x-full lg:translate-x-0 transition-transform duration-300"
+         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+
+    <!-- Logo -->
+    <div class="px-4 pt-5 pb-4 border-b border-white/10 flex items-center justify-between">
+      <a href="{% url 'incubation:dashboard' %}" class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-[#C4622D] rounded-lg flex items-center justify-center text-lg">🥚</div>
+        <span class="font-display text-lg font-extrabold tracking-tight">OvoCycle</span>
+      </a>
+      <!-- Bouton fermer (mobile) -->
+      <button @click="sidebarOpen = false" class="lg:hidden text-white/50 hover:text-white p-1">✕</button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 overflow-y-auto sidebar-nav">
+      <p class="font-mono text-[9px] text-white/25 uppercase tracking-widest px-2 mb-1">Principal</p>
+      <a href="{% url 'incubation:dashboard' %}"
+         class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-0.5 transition-all
+         {% if request.resolver_match.url_name == 'dashboard' %}bg-[#C4622D] text-white{% else %}text-white/60 hover:text-white hover:bg-white/8{% endif %}">
+        <span>◉</span> Dashboard
+      </a>
+      <a href="{% url 'incubation:batch-list' %}"
+         class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-0.5 transition-all
+         {% if 'batch' in request.resolver_match.url_name|default:'' %}bg-[#C4622D] text-white{% else %}text-white/60 hover:text-white hover:bg-white/8{% endif %}">
+        <span>▦</span> Tous les lots
+      </a>
+
+      <p class="font-mono text-[9px] text-white/25 uppercase tracking-widest px-2 mt-4 mb-1">Gestion</p>
+      <a href="{% url 'incubation:batch-create' %}"
+         class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-0.5 text-white/60 hover:text-white hover:bg-white/8 transition-all">
+        <span>＋</span> Nouveau lot
+      </a>
+
+      <p class="font-mono text-[9px] text-white/25 uppercase tracking-widest px-2 mt-4 mb-1">Analyse</p>
+      <a href="{% url 'analytics:dashboard' %}"
+         class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-0.5 transition-all
+         {% if 'analytics' in request.resolver_match.namespace|default:'' %}bg-[#C4622D] text-white{% else %}text-white/60 hover:text-white hover:bg-white/8{% endif %}">
+        <span>↗</span> Performances
+      </a>
+    </nav>
+
+    <!-- Footer utilisateur -->
+    <div class="px-3 pb-4 border-t border-white/10 pt-3 space-y-1">
+      <div class="flex items-center gap-2 px-3 py-2 mb-1">
+        <div class="w-7 h-7 rounded-full bg-[#C4622D] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+          {{ request.user|get_initials }}
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-white/80 truncate">{{ request.user.get_full_name|default:request.user.username }}</p>
+          <p class="font-mono text-[9px] text-white/30">
+            {% if request.user.is_superuser %}Administrateur{% elif request.user.is_staff %}Staff{% else %}Membre{% endif %}
+          </p>
+        </div>
+      </div>
+      <a href="/admin/" class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/35 hover:text-white/60 transition-all">
+        <span>⚙</span> Administration
+      </a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/35 hover:text-red-400 hover:bg-red-900/20 transition-all text-left">
+          <span>⎋</span> Se déconnecter
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <div class="lg:ml-56 flex-1 flex flex-col min-h-screen">
+
+    <!-- Topbar mobile -->
+    <header class="lg:hidden sticky top-0 z-30 bg-[#1A1814] text-white px-4 py-3 flex items-center justify-between shadow-lg">
+      <button @click="sidebarOpen = true" class="text-white/70 hover:text-white p-1 -ml-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+      <a href="{% url 'incubation:dashboard' %}" class="flex items-center gap-2">
+        <div class="w-6 h-6 bg-[#C4622D] rounded flex items-center justify-center text-sm">🥚</div>
+        <span class="font-display font-bold tracking-tight">OvoCycle</span>
+      </a>
+      <div class="w-8 h-8 rounded-full bg-[#C4622D] flex items-center justify-center text-xs font-bold">
+        {{ request.user|get_initials }}
+      </div>
+    </header>
+
+    <!-- Alertes HTMX -->
+    <div id="alerts-bar"
+         hx-get="{% url 'incubation:htmx-alerts' %}"
+         hx-trigger="load, every 60s"
+         hx-swap="innerHTML">
+    </div>
+
+    <!-- Contenu -->
+    <main class="flex-1 p-4 md:p-6 lg:p-7">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Flash messages -->
+  {% if messages %}
+  <div class="fixed bottom-4 right-4 z-[200] flex flex-col gap-2 max-w-xs w-full" x-data x-init="setTimeout(() => $el.remove(), 4500)">
+    {% for message in messages %}
+    <div class="alert shadow-lg text-sm">
+      <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

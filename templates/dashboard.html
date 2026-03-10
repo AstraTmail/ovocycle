@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load ovo_tags %}
+
+{% block title %}Dashboard — OvoCycle{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-5 md:mb-7">
+    <div>
+      <h1 class="font-display text-xl md:text-2xl font-bold tracking-tight text-[#1A1814]">Dashboard</h1>
+      <p class="font-mono text-[10px] md:text-[11px] text-[#A09A92] uppercase tracking-widest mt-0.5">{{ today|date:"l j F Y" }}</p>
+    </div>
+    <a href="{% url 'incubation:batch-create' %}" class="btn btn-sm bg-[#C4622D] text-white border-none hover:bg-[#b0562a]">
+      <span class="hidden sm:inline">＋ Nouveau lot</span>
+      <span class="sm:hidden text-base">＋</span>
+    </a>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-5 md:mb-7">
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-4 md:p-5 shadow-sm">
+      <p class="font-mono text-[9px] md:text-[10px] text-[#A09A92] uppercase tracking-widest mb-1 md:mb-2">Lots actifs</p>
+      <p class="font-display text-3xl md:text-4xl font-bold text-[#C4622D]">{{ total_active }}</p>
+      <p class="text-xs text-[#A09A92] mt-1 hidden sm:block">cycles en cours</p>
+    </div>
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-4 md:p-5 shadow-sm">
+      <p class="font-mono text-[9px] md:text-[10px] text-[#A09A92] uppercase tracking-widest mb-1 md:mb-2">Taux d'éclosion</p>
+      <p class="font-display text-3xl md:text-4xl font-bold text-[#2D7A4F]">
+        {% if avg_hatch_rate %}{{ avg_hatch_rate }}<span class="text-lg md:text-xl">%</span>{% else %}—{% endif %}
+      </p>
+      <p class="text-xs text-[#A09A92] mt-1 hidden sm:block">sur {{ total_completed }} cycles</p>
+    </div>
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-4 md:p-5 shadow-sm">
+      <p class="font-mono text-[9px] md:text-[10px] text-[#A09A92] uppercase tracking-widest mb-1 md:mb-2">Œufs en cours</p>
+      <p class="font-display text-3xl md:text-4xl font-bold text-[#C49B2D]">{{ total_eggs_active }}</p>
+      <p class="text-xs text-[#A09A92] mt-1 hidden sm:block">tous lots actifs</p>
+    </div>
+    <div class="bg-white rounded-xl border border-[#E5E0D8] p-4 md:p-5 shadow-sm">
+      <p class="font-mono text-[9px] md:text-[10px] text-[#A09A92] uppercase tracking-widest mb-1 md:mb-2">Cycles terminés</p>
+      <p class="font-display text-3xl md:text-4xl font-bold text-[#2D4FC4]">{{ total_completed }}</p>
+      <p class="text-xs text-[#A09A92] mt-1 hidden sm:block">depuis le début</p>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-5 md:mb-6">
+
+    <!-- Lots actifs -->
+    <div class="lg:col-span-2 bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-4 md:px-5 py-3 md:py-4 border-b border-[#F0EDE6]">
+        <h2 class="font-display font-bold text-sm tracking-tight">Lots en cours</h2>
+        <a href="{% url 'incubation:batch-list' %}" class="text-xs text-[#C4622D] hover:underline">Voir tous →</a>
+      </div>
+
+      {% if active_batches %}
+      <div class="divide-y divide-[#F7F5F0]">
+        {% for batch in active_batches %}
+        <a href="{% url 'incubation:batch-detail' batch.pk %}"
+           class="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3 md:py-4 hover:bg-[#FAF9F7] transition-colors group">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="font-display font-bold text-sm group-hover:text-[#C4622D] transition-colors truncate">{{ batch.name }}</span>
+              <span class="shrink-0 text-[10px] font-mono px-2 py-0.5 rounded-full {{ batch.status|batch_status_color }}">{{ batch.get_status_display }}</span>
+            </div>
+            <p class="font-mono text-[9px] md:text-[10px] text-[#A09A92] uppercase">
+              {{ batch.get_species_display }} · {{ batch.total_eggs }} œufs · J{{ batch.incubation_day }}
+            </p>
+            <div class="flex items-center gap-2 mt-2">
+              <div class="flex-1 h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-[#C4622D] to-[#E08040] rounded-full" style="width:{{ batch.progress_percent }}%"></div>
+              </div>
+              <span class="font-mono text-[9px] text-[#C0BAB3] shrink-0">{{ batch.progress_percent }}%</span>
+            </div>
+          </div>
+          {% with events=batch.upcoming_events %}
+          {% if events %}{% with next=events.0 %}
+          <div class="shrink-0 text-right hidden sm:block">
+            <p class="text-xs font-medium text-[#6B6560]">{{ next.label }}</p>
+            <p class="font-mono text-[10px] text-[#A09A92]">{{ next.date|date:"d/m" }}</p>
+            {% if next.days_left == 0 %}<p class="font-mono text-[9px] text-[#C4622D] font-semibold">Aujourd'hui !</p>
+            {% elif next.days_left == 1 %}<p class="font-mono text-[9px] text-amber-500">Demain</p>
+            {% else %}<p class="font-mono text-[9px] text-[#C0BAB3]">dans {{ next.days_left }}j</p>{% endif %}
+          </div>
+          {% endwith %}{% endif %}
+          {% endwith %}
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="py-12 md:py-16 text-center">
+        <div class="text-4xl mb-3">🥚</div>
+        <p class="text-[#A09A92] text-sm mb-4">Aucun lot en cours.</p>
+        <a href="{% url 'incubation:batch-create' %}" class="btn btn-sm bg-[#C4622D] text-white border-none">Créer le premier lot</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Prochains événements -->
+    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden">
+      <div class="px-4 md:px-5 py-3 md:py-4 border-b border-[#F0EDE6]">
+        <h2 class="font-display font-bold text-sm tracking-tight">Prochains événements</h2>
+        <p class="font-mono text-[10px] text-[#A09A92] mt-0.5">7 jours à venir</p>
+      </div>
+      {% if upcoming_events %}
+      <div class="divide-y divide-[#F7F5F0]">
+        {% for evt in upcoming_events %}
+        <div class="flex items-center gap-3 px-4 py-3">
+          <div class="w-9 h-9 md:w-10 md:h-10 rounded-lg flex flex-col items-center justify-center shrink-0
+            {% if evt.days_left == 0 %}bg-[#C4622D] text-white{% elif evt.days_left <= 2 %}bg-amber-100 text-amber-700{% else %}bg-[#F0EDE6] text-[#6B6560]{% endif %}">
+            <span class="font-display font-bold text-sm md:text-base leading-none">{{ evt.date|date:"d" }}</span>
+            <span class="font-mono text-[7px] md:text-[8px] uppercase leading-none mt-0.5 opacity-70">{{ evt.date|date:"M" }}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate">{{ evt.label }}</p>
+            <p class="font-mono text-[10px] text-[#A09A92] truncate">{{ evt.batch.name }}</p>
+          </div>
+          <span class="shrink-0 font-mono text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wide
+            {% if evt.type == 'hatch' %}bg-green-100 text-green-700
+            {% elif evt.type == 'lockdown' %}bg-amber-100 text-amber-700
+            {% else %}bg-blue-100 text-blue-700{% endif %}">
+            {% if evt.type == 'hatch' %}Éclos{% elif evt.type == 'lockdown' %}Lock{% else %}Mirage{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="py-10 text-center text-sm text-[#A09A92]">Aucun événement dans les 7 prochains jours.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Graphique -->
+  {% if chart_data != "[]" %}
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-4 md:p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display font-bold text-sm tracking-tight">Évolution du taux d'éclosion</h2>
+      <a href="{% url 'analytics:dashboard' %}" class="text-xs text-[#C4622D] hover:underline">Analytique →</a>
+    </div>
+    <canvas id="hatchChart" height="80"></canvas>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if chart_data != "[]" %}
+<script>
+const data = {{ chart_data|safe }};
+new Chart(document.getElementById('hatchChart'), {
+  type: 'line',
+  data: {
+    labels: data.map(d => d.name),
+    datasets: [{
+      label: "Taux d'éclosion (%)",
+      data: data.map(d => d.rate),
+      borderColor: '#C4622D',
+      backgroundColor: 'rgba(196,98,45,0.08)',
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointBackgroundColor: '#C4622D',
+      tension: 0.3,
+      fill: true,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 0, max: 100, grid: { color: '#F0EDE6' },
+           ticks: { callback: v => v + '%', font: { family: 'DM Mono', size: 10 } } },
+      x: { grid: { display: false }, ticks: { font: { family: 'DM Mono', size: 10 } } }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

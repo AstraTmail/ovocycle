@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load ovo_tags %}
+
+{% block title %}{% if is_update %}Modifier l'œuf {{ next_identifier }}{% else %}Ajouter un œuf{% endif %} — {{ batch.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+
+  <div class="mb-5">
+    <a href="{% url 'incubation:batch-detail' batch.pk %}" class="text-sm text-[#A09A92] hover:text-[#C4622D]">← Retour au lot</a>
+    <h1 class="font-display text-xl md:text-2xl font-bold tracking-tight mt-2">
+      {% if is_update %}Modifier l'œuf{% else %}Ajouter un œuf{% endif %}
+    </h1>
+    <p class="text-sm text-[#6B6560]">{{ batch.name }}</p>
+  </div>
+
+  <!-- Badge numéro -->
+  <div class="bg-[#1A1814] text-white rounded-xl px-4 md:px-5 py-4 mb-5 flex items-center gap-4">
+    <div class="w-11 h-11 md:w-12 md:h-12 bg-[#C4622D] rounded-xl flex items-center justify-center font-mono font-bold text-lg shrink-0">
+      {{ next_identifier }}
+    </div>
+    <div>
+      <p class="font-mono text-[10px] text-white/40 uppercase tracking-widest">Numéro de l'œuf</p>
+      <p class="font-display font-bold text-base">Œuf {{ next_identifier }}</p>
+      <p class="font-mono text-[9px] text-white/40 mt-0.5">
+        {% if is_update %}Modification de la position{% else %}Ce numéro sera inscrit sur l'œuf{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5 md:p-7">
+    <h2 class="font-display font-bold text-base mb-5">Position dans la couveuse</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="space-y-4">
+
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Étage *</label>
+          {{ form.floor }}
+          {% if form.floor.errors %}<p class="text-red-500 text-xs mt-1">{{ form.floor.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Colonne (A→E) *</label>
+            {{ form.column }}
+            {% if form.column.errors %}<p class="text-red-500 text-xs mt-1">{{ form.column.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Ligne (1→6) *</label>
+            {{ form.row }}
+            {% if form.row.errors %}<p class="text-red-500 text-xs mt-1">{{ form.row.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+
+        <!-- Aperçu position -->
+        <div class="bg-[#F7F5F0] rounded-xl px-4 py-3 flex items-center gap-3"
+             x-data="{
+               preview: '—',
+               cols: {'1':'A','2':'B','3':'C','4':'D','5':'E'},
+               update() {
+                 const f = document.getElementById('id_floor')?.value;
+                 const c = document.getElementById('id_column')?.value;
+                 const r = document.getElementById('id_row')?.value;
+                 this.preview = (f && c && r) ? 'E'+f+this.cols[c]+r : '—';
+               }
+             }"
+             x-init="update()"
+             @change.window="update()">
+          <p class="font-mono text-[10px] text-[#A09A92] uppercase tracking-widest">Position :</p>
+          <span x-text="preview" class="font-mono font-bold text-xl text-[#C4622D]">—</span>
+        </div>
+
+        {% if is_update %}
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Statut</label>
+          <select name="status" class="select select-bordered w-full text-sm">
+            <option value="pending"     {% if form.instance.status == 'pending' %}selected{% endif %}>En attente</option>
+            <option value="fertile"     {% if form.instance.status == 'fertile' %}selected{% endif %}>Fertile</option>
+            <option value="clear"       {% if form.instance.status == 'clear' %}selected{% endif %}>Clair (infertile)</option>
+            <option value="dead_embryo" {% if form.instance.status == 'dead_embryo' %}selected{% endif %}>Mort embryonnaire</option>
+            <option value="cracked"     {% if form.instance.status == 'cracked' %}selected{% endif %}>Fissuré</option>
+            <option value="hatched"     {% if form.instance.status == 'hatched' %}selected{% endif %}>Éclos ✓</option>
+            <option value="failed"      {% if form.instance.status == 'failed' %}selected{% endif %}>Échoué</option>
+            <option value="removed"     {% if form.instance.status == 'removed' %}selected{% endif %}>Retiré</option>
+          </select>
+        </div>
+        {% endif %}
+
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Poids initial (g) — optionnel</label>
+          {{ form.weight_g }}
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Notes</label>
+          {{ form.notes }}
+        </div>
+
+        <div class="pt-4 border-t border-[#F0EDE6] flex flex-col sm:flex-row gap-3">
+          <button type="submit" class="btn bg-[#C4622D] text-white border-none hover:bg-[#b0562a] flex-1">
+            {% if is_update %}Enregistrer les modifications{% else %}Enregistrer l'œuf {{ next_identifier }}{% endif %}
+          </button>
+          <a href="{% url 'incubation:batch-detail' batch.pk %}" class="btn btn-ghost">Annuler</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

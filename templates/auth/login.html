@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — OvoCycle</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.0/dist/full.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-display { font-family: 'Syne', sans-serif; }
+    .font-mono    { font-family: 'DM Mono', monospace; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-4">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-[#1A1814] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg">
+        🥚
+      </div>
+      <h1 class="font-display text-3xl font-extrabold tracking-tight text-[#1A1814]">OvoCycle</h1>
+      <p class="font-mono text-[11px] text-[#A09A92] uppercase tracking-widest mt-1">Couveuse Analytique</p>
+    </div>
+
+    <!-- Carte de connexion -->
+    <div class="bg-white rounded-2xl border border-[#E5E0D8] shadow-lg p-7">
+      <h2 class="font-display font-bold text-lg text-[#1A1814] mb-1">Connexion</h2>
+      <p class="text-sm text-[#A09A92] mb-6">Accès réservé aux membres de la ferme</p>
+
+      {% if form.errors %}
+      <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5 text-sm text-red-700">
+        ❌ Identifiant ou mot de passe incorrect.
+      </div>
+      {% endif %}
+
+      {% if next %}
+      <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 text-sm text-amber-700">
+        🔒 Connectez-vous pour accéder à cette page.
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="space-y-4">
+          <div>
+            <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">
+              Nom d'utilisateur
+            </label>
+            <input
+              type="text"
+              name="username"
+              autocomplete="username"
+              autofocus
+              class="input input-bordered w-full text-sm focus:border-[#C4622D] focus:outline-none"
+              placeholder="ex: jean.dupont"
+              value="{{ form.username.value|default:'' }}">
+          </div>
+
+          <div>
+            <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">
+              Mot de passe
+            </label>
+            <input
+              type="password"
+              name="password"
+              autocomplete="current-password"
+              class="input input-bordered w-full text-sm focus:border-[#C4622D] focus:outline-none"
+              placeholder="••••••••">
+          </div>
+
+          <button type="submit"
+                  class="btn w-full bg-[#C4622D] text-white border-none hover:bg-[#b0562a] mt-2">
+            Se connecter →
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <p class="text-center font-mono text-[10px] text-[#C0BAB3] uppercase tracking-widest mt-6">
+      Vous n'avez pas de compte ? Contactez l'administrateur.
+    </p>
+
+  </div>
+
+</body>
+</html>
