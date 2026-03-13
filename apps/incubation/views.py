@@ -230,16 +230,37 @@ class EggBulkCreateView(LoginRequiredMixin, View):
                 'count': count, 'step': 2, 'errors': errors,
             })
 
-        positions = [(e.floor, e.column, e.row) for e in eggs_to_create]
-        if len(positions) != len(set(positions)):
-            messages.error(request, 'Deux oeufs ont la meme position. Corrigez les doublons.')
+        # Vérifier doublons entre les nouveaux œufs
+        new_positions = [(e.floor, e.column, e.row) for e in eggs_to_create]
+        if len(new_positions) != len(set(new_positions)):
+            duplicate_conflicts = [p for p in new_positions if new_positions.count(p) > 1]
+            errors = [f"Position E{p[0]}{['','A','B','C','D','E'][p[1]]}{p[2]} saisie plusieurs fois." for p in set(duplicate_conflicts)]
             position_forms = [
                 (str(next_id + i).zfill(3), EggPositionForm(request.POST, prefix=f'egg_{i}'))
                 for i in range(count)
             ]
             return render(request, self.template_name, {
                 'batch': batch, 'position_forms': position_forms,
-                'count': count, 'step': 2,
+                'count': count, 'step': 2, 'errors': errors,
+            })
+
+        # Vérifier conflits avec les œufs déjà existants dans ce lot
+        existing_positions = set(
+            batch.eggs.values_list('floor', 'column', 'row')
+        )
+        conflicts = [
+            f"Position E{e.floor}{['','A','B','C','D','E'][e.column]}{e.row} déjà occupée dans ce lot."
+            for e in eggs_to_create
+            if (e.floor, e.column, e.row) in existing_positions
+        ]
+        if conflicts:
+            position_forms = [
+                (str(next_id + i).zfill(3), EggPositionForm(request.POST, prefix=f'egg_{i}'))
+                for i in range(count)
+            ]
+            return render(request, self.template_name, {
+                'batch': batch, 'position_forms': position_forms,
+                'count': count, 'step': 2, 'errors': conflicts,
             })
 
         try:
