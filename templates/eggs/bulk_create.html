@@ -6,104 +6,117 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
 
-  <div class="mb-5">
-    <a href="{% url 'incubation:batch-detail' batch.pk %}" class="text-sm text-[#A09A92] hover:text-[#C4622D]">← Retour au lot</a>
-    <h1 class="font-display text-xl md:text-2xl font-bold tracking-tight mt-2">Enregistrer des œufs</h1>
-    <p class="text-sm text-[#6B6560]">{{ batch.name }}</p>
-  </div>
-
-  <!-- Info format -->
-  <div class="bg-[#1A1814] text-white rounded-xl px-4 md:px-5 py-4 mb-5 flex flex-wrap items-center gap-4 md:gap-8">
-    <div>
-      <p class="font-mono text-[9px] text-white/40 uppercase tracking-widest mb-1">Format de position</p>
-      <p class="font-display text-2xl font-bold text-[#C4622D]">E2A3</p>
+    <div class="mb-5">
+        <a href="{% url 'incubation:batch-detail' batch.pk %}" class="text-sm text-[#A09A92] hover:text-[#C4622D]">←
+            Retour au lot</a>
+        <h1 class="font-display text-xl md:text-2xl font-bold tracking-tight mt-2">Enregistrer des œufs</h1>
+        <p class="text-sm text-[#6B6560]">{{ batch.name }}</p>
     </div>
-    <div class="font-mono text-xs text-white/50 space-y-1">
-      <p><span class="text-[#C4622D] font-bold">E2</span> = Étage 2</p>
-      <p><span class="text-[#C4622D] font-bold">A</span> = Colonne A</p>
-      <p><span class="text-[#C4622D] font-bold">3</span> = Ligne 3</p>
-    </div>
-    <div class="ml-auto font-mono text-xs text-white/40">{{ batch.eggs.count }} œuf(s) déjà dans ce lot</div>
-  </div>
 
-  {% if errors %}
-  <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-4 mb-5 text-sm text-red-700 space-y-1">
-    {% for e in errors %}<p>⚠️ {{ e }}</p>{% endfor %}
-  </div>
-  {% endif %}
-
-  <!-- ÉTAPE 1 -->
-  {% if step == 1 %}
-  <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5 md:p-7 max-w-sm">
-    <h2 class="font-display font-bold text-base mb-1">Étape 1 — Combien d'œufs ?</h2>
-    <p class="text-sm text-[#A09A92] mb-5">Vous saisirez la position de chacun à l'étape suivante.</p>
-    <form method="get">
-      <div class="space-y-4">
+    <!-- Info format -->
+    <div class="bg-[#1A1814] text-white rounded-xl px-4 md:px-5 py-4 mb-5 flex flex-wrap items-center gap-4 md:gap-8">
         <div>
-          <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Nombre d'œufs</label>
-          {{ form.count }}
-          {% if form.count.errors %}<p class="text-red-500 text-xs mt-1">{{ form.count.errors.0 }}</p>{% endif %}
+            <p class="font-mono text-[9px] text-white/40 uppercase tracking-widest mb-1">Format de position</p>
+            <p class="font-display text-2xl font-bold text-[#C4622D]">E2A3</p>
         </div>
-        <button type="submit" class="btn bg-[#C4622D] text-white border-none hover:bg-[#b0562a] w-full">
-          Suivant — Saisir les positions →
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- ÉTAPE 2 -->
-  {% elif step == 2 %}
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="count" value="{{ count }}">
-
-    <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden mb-5">
-      <div class="flex items-center justify-between px-4 md:px-5 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
-        <h2 class="font-display font-bold text-sm">Étape 2 — Position de chaque œuf</h2>
-        <span class="font-mono text-xs text-[#A09A92]">{{ count }} œuf(s)</span>
-      </div>
-
-      <!-- Vue mobile : cards empilées -->
-      <div class="divide-y divide-[#F7F5F0] md:hidden">
-        {% for identifier, form in position_forms %}
-        <div class="px-4 py-4">
-          <div class="flex items-center justify-between mb-3">
-            <span class="font-mono font-bold text-sm bg-[#1A1814] text-white px-2.5 py-1 rounded-lg">{{ identifier }}</span>
-            <span class="font-mono font-bold text-base text-[#C4622D] bg-[#F5EAE4] px-3 py-1 rounded-lg min-w-[70px] text-center mobile-preview">E1A1</span>
-          </div>
-          <div class="grid grid-cols-3 gap-2 mobile-selects">
-            <div>
-              <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Etage</label>
-              {{ form.floor }}
-            </div>
-            <div>
-              <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Colonne</label>
-              {{ form.column }}
-            </div>
-            <div>
-              <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Ligne</label>
-              {{ form.row }}
-            </div>
-          </div>
+        <div class="font-mono text-xs text-white/50 space-y-1">
+            <p><span class="text-[#C4622D] font-bold">E2</span> = Étage 2</p>
+            <p><span class="text-[#C4622D] font-bold">A</span> = Colonne A</p>
+            <p><span class="text-[#C4622D] font-bold">3</span> = Ligne 3</p>
         </div>
-        {% endfor %}
-      </div>
+        <div class="ml-auto font-mono text-xs text-white/40">{{ batch.eggs.count }} œuf(s) déjà dans ce lot</div>
+    </div>
 
-      <!-- Vue desktop : tableau -->
-      <div class="hidden md:block overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b border-[#F0EDE6] bg-[#F7F5F0]">
-              <th class="text-left px-5 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92] w-28">N° œuf</th>
-              <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Étage</th>
-              <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Colonne</th>
-              <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Ligne</th>
-              <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">Aperçu</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[#F7F5F0]">
-            {% for identifier, form in position_forms %}
-            <tr class="hover:bg-[#FAFAF8]" x-data="{
+    {% if errors %}
+        <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-4 mb-5 text-sm text-red-700 space-y-1">
+            {% for e in errors %}<p>⚠️ {{ e }}</p>{% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- ÉTAPE 1 -->
+    {% if step == 1 %}
+        <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm p-5 md:p-7 max-w-sm">
+            <h2 class="font-display font-bold text-base mb-1">Étape 1 — Combien d'œufs ?</h2>
+            <p class="text-sm text-[#A09A92] mb-5">Vous saisirez la position de chacun à l'étape suivante.</p>
+            <form method="get">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block font-mono text-[10px] text-[#A09A92] uppercase tracking-widest mb-1.5">Nombre
+                            d'œufs</label>
+                        {{ form.count }}
+                        {% if form.count.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.count.errors.0 }}</p>{% endif %}
+                    </div>
+                    <button type="submit" class="btn bg-[#C4622D] text-white border-none hover:bg-[#b0562a] w-full">
+                        Suivant — Saisir les positions →
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ÉTAPE 2 -->
+    {% elif step == 2 %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="count" value="{{ count }}">
+
+            <div class="bg-white rounded-xl border border-[#E5E0D8] shadow-sm overflow-hidden mb-5">
+                <div class="flex items-center justify-between px-4 md:px-5 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
+                    <h2 class="font-display font-bold text-sm">Étape 2 — Position de chaque œuf</h2>
+                    <span class="font-mono text-xs text-[#A09A92]">{{ count }} œuf(s)</span>
+                </div>
+
+                <!-- Vue mobile : cards empilées -->
+                <div class="divide-y divide-[#F7F5F0] md:hidden">
+                    {% for identifier, form in position_forms %}
+                        <div class="px-4 py-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="font-mono font-bold text-sm bg-[#1A1814] text-white px-2.5 py-1 rounded-lg">{{ identifier }}</span>
+                                <span class="font-mono font-bold text-base text-[#C4622D] bg-[#F5EAE4] px-3 py-1 rounded-lg min-w-[70px] text-center mobile-preview">E1A1</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mobile-selects">
+                                <div>
+                                    <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Etage</label>
+                                    {{ form.floor }}
+                                </div>
+                                <div>
+                                    <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Colonne</label>
+                                    {{ form.column }}
+                                </div>
+                                <div>
+                                    <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Ligne</label>
+                                    {{ form.row }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Vue desktop : tableau -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                        <tr class="border-b border-[#F0EDE6] bg-[#F7F5F0]">
+                            <th class="text-left px-5 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92] w-28">
+                                N° œuf
+                            </th>
+                            <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">
+                                Étage
+                            </th>
+                            <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">
+                                Colonne
+                            </th>
+                            <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">
+                                Ligne
+                            </th>
+                            <th class="text-left px-4 py-2.5 font-mono text-[9px] uppercase tracking-widest text-[#A09A92]">
+                                Aperçu
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#F7F5F0]">
+                        {% for identifier, form in position_forms %}
+                            <tr class="hover:bg-[#FAFAF8]" x-data="{
               preview: '—',
               colLetters: {'1':'A','2':'B','3':'C','4':'D','5':'E'},
               update(el) {
@@ -114,50 +127,56 @@
                 this.preview = (f && c && r) ? 'E'+f+(this.colLetters[c]||c)+r : '—';
               }
             }" x-init="$nextTick(() => update($el))">
-              <td class="px-5 py-2.5">
-                <span class="font-mono font-bold text-sm bg-[#1A1814] text-white px-2.5 py-1 rounded-lg">{{ identifier }}</span>
-              </td>
-              <td class="px-4 py-2.5" @change="update($el)">{{ form.floor }}</td>
-              <td class="px-4 py-2.5" @change="update($el)">{{ form.column }}</td>
-              <td class="px-4 py-2.5" @change="update($el)">{{ form.row }}</td>
-              <td class="px-4 py-2.5">
-                <span x-text="preview" class="font-mono font-bold text-sm text-[#C4622D] bg-[#F5EAE4] px-2.5 py-1 rounded-lg min-w-[60px] inline-block text-center"></span>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                                <td class="px-5 py-2.5">
+                                    <span class="font-mono font-bold text-sm bg-[#1A1814] text-white px-2.5 py-1 rounded-lg">{{ identifier }}</span>
+                                </td>
+                                <td class="px-4 py-2.5" @change="update($el)">{{ form.floor }}</td>
+                                <td class="px-4 py-2.5" @change="update($el)">{{ form.column }}</td>
+                                <td class="px-4 py-2.5" @change="update($el)">{{ form.row }}</td>
+                                <td class="px-4 py-2.5">
+                                    <span x-text="preview"
+                                          class="font-mono font-bold text-sm text-[#C4622D] bg-[#F5EAE4] px-2.5 py-1 rounded-lg min-w-[60px] inline-block text-center"></span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <div class="flex flex-col sm:flex-row gap-3">
-      <button type="submit" class="btn bg-[#2D7A4F] text-white border-none hover:bg-green-700 flex-1">
-        ✓ Enregistrer les {{ count }} œuf(s)
-      </button>
-      <a href="{% url 'incubation:egg-bulk' batch.pk %}" class="btn btn-ghost">← Recommencer</a>
-      <a href="{% url 'incubation:batch-detail' batch.pk %}" class="btn btn-ghost">Annuler</a>
-    </div>
-  </form>
-  {% endif %}
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="submit" class="btn bg-[#2D7A4F] text-white border-none hover:bg-green-700 flex-1">
+                    ✓ Enregistrer les {{ count }} œuf(s)
+                </button>
+                <a href="{% url 'incubation:egg-bulk' batch.pk %}" class="btn btn-ghost">← Recommencer</a>
+                <a href="{% url 'incubation:batch-detail' batch.pk %}" class="btn btn-ghost">Annuler</a>
+            </div>
+        </form>
+    {% endif %}
 
 </div>
+{% endblock %}
 {% block extra_js %}
-<script>
-// Preview position sur mobile
-const colLetters = {'1':'A','2':'B','3':'C','4':'D','5':'E'};
-document.querySelectorAll('.mobile-selects').forEach(function(container) {
-  const preview = container.previousElementSibling.querySelector('.mobile-preview');
-  const selects = container.querySelectorAll('select');
-  function updatePreview() {
-    const f = selects[0].value;
-    const c = selects[1].value;
-    const r = selects[2].value;
-    if (f && c && r) {
-      preview.textContent = 'E' + f + (colLetters[c] || c) + r;
-    }
-  }
-  selects.forEach(function(s) { s.addEventListener('change', updatePreview); });
-  updatePreview();
-});
-</script>
+    <script>
+        // Preview position sur mobile
+        const colLetters = {'1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E'};
+        document.querySelectorAll('.mobile-selects').forEach(function (container) {
+            const preview = container.previousElementSibling.querySelector('.mobile-preview');
+            const selects = container.querySelectorAll('select');
+
+            function updatePreview() {
+                const f = selects[0].value;
+                const c = selects[1].value;
+                const r = selects[2].value;
+                if (f && c && r) {
+                    preview.textContent = 'E' + f + (colLetters[c] || c) + r;
+                }
+            }
+
+            selects.forEach(function (s) {
+                s.addEventListener('change', updatePreview);
+            });
+            updatePreview();
+        });
+    </script>
 {% endblock %}
