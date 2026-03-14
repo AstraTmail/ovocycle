@@ -67,32 +67,51 @@
       <div class="divide-y divide-[#F7F5F0] md:hidden">
         {% for identifier, form in position_forms %}
         <div class="px-4 py-4" x-data="{
-          preview: '—',
+          preview: '?',
           colLetters: {'1':'A','2':'B','3':'C','4':'D','5':'E'},
-          update(el) {
-            const card = el.closest('[data-card]');
-            const f = card.querySelector('[id$=-floor]')?.value || '';
-            const c = card.querySelector('[id$=-column]')?.value || '';
-            const r = card.querySelector('[id$=-row]')?.value || '';
-            this.preview = (f && c && r) ? 'E'+f+(this.colLetters[c]||c)+r : '—';
+          updatePreview() {
+            const f = this.$refs.floor.value;
+            const c = this.$refs.col.value;
+            const r = this.$refs.row.value;
+            this.preview = (f && c && r) ? 'E'+f+(this.colLetters[c]||c)+r : '?';
           }
-        }" x-init="$nextTick(() => update($el))" data-card>
+        }" x-init="$nextTick(() => updatePreview())">
           <div class="flex items-center justify-between mb-3">
             <span class="font-mono font-bold text-sm bg-[#1A1814] text-white px-2.5 py-1 rounded-lg">{{ identifier }}</span>
-            <span x-text="preview" class="font-mono font-bold text-base text-[#C4622D] bg-[#F5EAE4] px-3 py-1 rounded-lg min-w-[70px] text-center">—</span>
+            <span x-text="preview" class="font-mono font-bold text-base text-[#C4622D] bg-[#F5EAE4] px-3 py-1 rounded-lg min-w-[70px] text-center">?</span>
           </div>
-          <div class="grid grid-cols-3 gap-2" @change="update($el)">
+          <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Étage</label>
-              {{ form.floor }}
+              <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Etage</label>
+              <select name="{{ form.floor.html_name }}" x-ref="floor" @change="updatePreview()"
+                      class="select select-bordered select-sm w-full text-sm">
+                <option value="1">Etage 1</option>
+                <option value="2">Etage 2</option>
+                <option value="3">Etage 3</option>
+              </select>
             </div>
             <div>
               <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Colonne</label>
-              {{ form.column }}
+              <select name="{{ form.column.html_name }}" x-ref="col" @change="updatePreview()"
+                      class="select select-bordered select-sm w-full text-sm">
+                <option value="1">A</option>
+                <option value="2">B</option>
+                <option value="3">C</option>
+                <option value="4">D</option>
+                <option value="5">E</option>
+              </select>
             </div>
             <div>
               <label class="block font-mono text-[9px] text-[#A09A92] uppercase mb-1">Ligne</label>
-              {{ form.row }}
+              <select name="{{ form.row.html_name }}" x-ref="row" @change="updatePreview()"
+                      class="select select-bordered select-sm w-full text-sm">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
             </div>
           </div>
         </div>
