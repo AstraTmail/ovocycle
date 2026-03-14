@@ -198,6 +198,7 @@ class EggBulkCreateView(LoginRequiredMixin, View):
     def post(self, request, batch_pk):
         batch = get_object_or_404(IncubationBatch, pk=batch_pk)
         count = int(request.POST.get('count') or 0)
+        print("=== POST DATA ===", dict(request.POST), flush=True)
         if count == 0:
             messages.error(request, 'Aucun oeuf a enregistrer.')
             return redirect('incubation:egg-bulk', batch_pk=batch_pk)
